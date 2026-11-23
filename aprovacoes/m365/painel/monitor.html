@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net https://components.connect.trimble.com; style-src 'self'; img-src 'self'; connect-src 'self' https://login.microsoftonline.com https://graph.microsoft.com; frame-src 'self' https://login.microsoftonline.com; base-uri 'none'; form-action 'none'">
+  <title>Acompanhamento · Aprovações BIM</title>
+  <link rel="icon" href="../../icon.svg">
+  <link rel="stylesheet" href="painel.css">
+  <link rel="stylesheet" href="monitor.css">
+  <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@4.30.0/lib/msal-browser.min.js" integrity="sha384-RGxxfG5yRS8DLU7ZJ8OoLhbV/BsJFHyPuMVHrTLbpj3t5Z15LnviJmaznKY/a7LZ" crossorigin="anonymous" defer></script>
+  <script type="module" src="monitor.mjs"></script>
+</head>
+<body>
+  <header>
+    <img src="../../icon.svg" alt="" width="38" height="38">
+    <div><small>Trimble Connect</small><strong>Aprovações BIM</strong></div>
+    <nav aria-label="Aprovações BIM"><a href="./index.html">Submeter revisão</a><a href="./decisoes.html">Decisões da equipe</a></nav>
+  </header>
+  <main>
+    <h1>Acompanhamento</h1>
+    <p id="monitor-status" role="status" class="status">Consultando o projeto…</p>
+    <div class="buttons"><button type="button" id="monitor-login" disabled>Conectar conta Microsoft</button></div>
+    <div id="monitor-links" class="buttons monitor-actions" hidden>
+        <a id="monitor-board" target="_blank" rel="noopener noreferrer">Entregas no SharePoint ↗</a>
+        <a id="monitor-intake" target="_blank" rel="noopener noreferrer">Pedidos no SharePoint ↗</a>
+    </div>
+    <div id="monitor-data" hidden>
+      <div class="buttons"><button type="button" id="monitor-refresh" class="secondary">Atualizar acompanhamento</button></div>
+      <section aria-labelledby="deliveries-heading">
+        <h2 id="deliveries-heading">Entregas do projeto</h2>
+        <p id="monitor-deliveries-status" role="status"></p>
+        <div class="monitor-counts">
+          <div><strong id="monitor-open">0</strong><span>Em andamento</span></div>
+          <div><strong id="monitor-conference">0</strong><span>Em conferência</span></div>
+          <div><strong id="monitor-published">0</strong><span>Publicadas</span></div>
+        </div>
+        <label for="monitor-stage">Filtrar por etapa</label>
+        <select id="monitor-stage"><option value="">Todas as etapas</option></select>
+        <div class="monitor-table" tabindex="0" role="region" aria-label="Entregas">
+          <table>
+            <thead><tr><th scope="col">Documento</th><th scope="col">Etapa</th><th scope="col">Dossiê</th></tr></thead>
+            <tbody id="monitor-deliveries"></tbody>
+          </table>
+        </div>
+        <button type="button" id="monitor-more-deliveries" class="secondary" hidden>Carregar mais entregas</button>
+      </section>
+      <section aria-labelledby="commands-heading">
+        <h2 id="commands-heading">Pedidos no site do projeto</h2>
+        <p id="monitor-queue-status" role="status"></p>
+        <label for="monitor-queue-filter">Filtrar pedidos</label>
+        <select id="monitor-queue-filter">
+          <option value="">Todos os pedidos carregados</option>
+          <option value="overdue">Sem resultado há mais de 15 minutos</option>
+          <option value="waiting">Aguardando resultado</option>
+          <option value="notice">Com aviso no SharePoint</option>
+          <option value="applied">Com evento confirmado no histórico</option>
+          <option value="undated">Sem data de envio disponível</option>
+        </select>
+        <div class="monitor-table" tabindex="0" role="region" aria-label="Pedidos">
+          <table>
+            <thead><tr><th scope="col">Pedido</th><th scope="col">Recebido</th><th scope="col">Situação</th><th scope="col">Histórico</th></tr></thead>
+            <tbody id="monitor-queue"></tbody>
+          </table>
+        </div>
+        <button type="button" id="monitor-more-requests" class="secondary" hidden>Carregar mais pedidos</button>
+        <p>O resultado da lista de pedidos é um aviso. O evento com o mesmo ID no histórico do dossiê confirma a decisão.</p>
+      </section>
+      <section id="monitor-history-card" aria-labelledby="monitor-history-title" hidden>
+        <h2 id="monitor-history-title" tabindex="-1">Histórico oficial</h2>
+        <p id="monitor-history-summary" role="status"></p>
+        <ol id="monitor-history"></ol>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net https://components.connect.trimble.com; style-src 'self'; img-src 'self'; connect-src 'self' https://login.microsoftonline.com https://graph.microsoft.com https://app.connect.trimble.com https://app21.connect.trimble.com https://app22.connect.trimble.com https://app31.connect.trimble.com https://app32.connect.trimble.com; frame-src 'self' https://login.microsoftonline.com; base-uri 'none'; form-action 'none'">
+  <title>Decisões da equipe · Aprovações BIM</title><link rel="stylesheet" href="painel.css">
+  <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@4.30.0/lib/msal-browser.min.js" integrity="sha384-RGxxfG5yRS8DLU7ZJ8OoLhbV/BsJFHyPuMVHrTLbpj3t5Z15LnviJmaznKY/a7LZ" crossorigin="anonymous" defer></script>
+  <script type="module" src="decisoes.mjs"></script>
+</head>
+<body>
+  <header><img src="../../icon.svg" alt="" width="38" height="38"><div><small>Trimble Connect</small><strong>Aprovações BIM</strong></div><a href="./index.html">Submeter revisão</a></header>
+  <main>
+    <h1>Decisões da equipe</h1><p id="status" role="status" class="status">Consultando o projeto…</p>
+    <button id="login" disabled>Conectar conta Microsoft</button> <a href="./index.html">Formulário nativo</a> <a href="./monitor.html">Acompanhamento</a>
+    <section id="proposal" hidden><h2>Revisão conferida no Trimble</h2><p id="proposal-name"></p><button id="send-proposal">Registrar solicitação</button></section>
+    <section id="lookup" hidden>
+      <h2>Consultar entrega</h2>
+      <div class="buttons"><button id="browse" class="secondary">Listar entregas do projeto</button> <a id="board-link" target="_blank" rel="noopener noreferrer">Lista no SharePoint ↗</a></div>
+      <ul id="delivery-list"></ul><button id="more" class="secondary" hidden>Carregar outra página</button>
+      <label for="key">Chave do documento</label><input id="key" maxlength="125" placeholder="PRJ-EST-PLANTA|R01"> <button id="load">Carregar dossiê</button>
+    </section>
+    <section id="dossier" hidden>
+      <h2 id="title"></h2><p id="stage"></p><p id="reference"></p><p id="criteria"></p><p id="owners"></p>
+      <details><summary>Histórico oficial</summary><ol id="history"></ol></details>
+      <form id="decision" hidden>
+        <label for="action">Ação</label><select id="action"></select>
+        <div id="destination-label" hidden><label for="destination">ID da cópia no Trimble (opcional na busca por nome)</label><input id="destination" maxlength="96"><button id="find-copy" type="button" class="secondary">Localizar e conferir cópia</button><p id="found-copy"></p></div>
+        <label for="note">Parecer</label><textarea id="note" rows="3" maxlength="1000" required></textarea>
+        <label class="attest"><input id="check" type="checkbox" required><span id="check-label"></span></label>
+        <button id="send">Registrar decisão para processamento</button>
+      </form>
+    </section>
+    <section id="receipt" hidden><h2>Pedido enviado</h2><p id="receipt-info"></p><button id="verify" class="secondary">Conferir resultado oficial</button> <a id="requests" target="_blank" rel="noopener noreferrer">Pedidos no SharePoint ↗</a></section>
+  </main>
+</body></html>

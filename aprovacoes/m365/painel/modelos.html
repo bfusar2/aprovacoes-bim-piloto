@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://components.connect.trimble.com; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Modelos de aprovação · Aprovações BIM</title>
+  <link rel="icon" href="../../icon.svg">
+  <link rel="stylesheet" href="painel.css">
+  <link rel="stylesheet" href="modelos.css">
+  <script type="module" src="modelos.mjs"></script>
+</head>
+<body>
+  <header>
+    <img src="../../icon.svg" width="38" height="38" alt="">
+    <div><small>Trimble Connect</small><strong>Aprovações BIM</strong></div>
+    <a href="./index.html">Submeter revisão</a>
+  </header>
+  <main class="editor">
+    <h1>Modelos de aprovação</h1>
+    <p>Prepare as regras para novas entregas. Um proprietário da lista BIMModelos registra a versão no SharePoint.</p>
+    <p id="context-status" class="status" role="status">Consultando o projeto…</p>
+    <div class="buttons links">
+      <button id="use-project" class="secondary" type="button" hidden>Usar dados do projeto ativo</button>
+      <a id="models" target="_blank" rel="noopener noreferrer" hidden>Abrir BIMModelos no SharePoint ↗</a>
+    </div>
+
+    <section>
+      <details>
+        <summary>Importar modelo existente</summary>
+        <p>Cole DadosJson da lista BIMModelos ou um registro copiado deste editor. A importação substitui o rascunho da tela.</p>
+        <form id="import-form">
+          <label for="import-json">JSON do modelo</label>
+          <textarea id="import-json" rows="6" maxlength="100000" spellcheck="false" class="code"></textarea>
+          <label for="import-file">Ou selecione um arquivo JSON</label>
+          <input id="import-file" type="file" accept=".json,application/json">
+          <div class="buttons"><button type="submit" class="secondary">Importar no editor</button></div>
+        </form>
+        <p id="import-status" role="status"></p>
+      </details>
+    </section>
+
+    <form id="editor-form" novalidate>
+      <section aria-labelledby="identificacao">
+        <h2 id="identificacao">Identificação e destino do registro</h2>
+        <div class="editor-grid">
+          <label>Título <input name="titulo" maxlength="255" placeholder="Entrega formal" required></label>
+          <label>Chave da versão <input name="chave" class="code" maxlength="125" placeholder="ENTREGA|1" required></label>
+          <label>ID do projeto no Trimble <input name="projeto" class="code" maxlength="96" required></label>
+          <label>Site SharePoint <input name="site" type="url" placeholder="https://empresa.sharepoint.com/sites/BIM" aria-describedby="site-status"></label>
+        </div>
+        <p id="site-status"></p>
+        <label class="attest"><input name="ativo" type="checkbox"> Disponível para novas submissões</label>
+        <p>Ao alterar as regras de um modelo em uso, registre uma nova chave, como ENTREGA|2. Os dossiês existentes conservam a versão aplicada na abertura.</p>
+      </section>
+      <section aria-labelledby="pastas">
+        <h2 id="pastas">Pastas no Trimble</h2>
+        <div class="editor-grid">
+          <label>ID da pasta Em elaboração <input name="wip" maxlength="96" class="code" required></label>
+          <label>ID da pasta Compartilhado <input name="shared" maxlength="96" class="code" required></label>
+          <label>ID da pasta Publicado <input name="published" maxlength="96" class="code" required></label>
+        </div>
+        <p>Use três IDs distintos do projeto. O painel verifica a versão real do arquivo durante a operação.</p>
+      </section>
+      <section aria-labelledby="responsaveis">
+        <h2 id="responsaveis">Responsáveis pelas etapas</h2>
+        <p>Use o e-mail registrado em <strong>Criado por</strong> no SharePoint. Separe múltiplos endereços por linha ou vírgula.</p>
+        <div id="roles" class="editor-grid"></div>
+        <details class="identities">
+          <summary>Correspondência de contas Microsoft e Trimble</summary>
+          <p>Preencha quando a conta Microsoft tem endereço diferente do membro Trimble. Informe uma associação por linha, no formato <code>conta@empresa.com → pessoa@exemplo.com</code>.</p>
+          <label for="identity-map">Correspondências administradas</label>
+          <textarea id="identity-map" name="identidades" rows="4" class="code" spellcheck="false"></textarea>
+        </details>
+      </section>
+      <section aria-labelledby="regras">
+        <h2 id="regras">Política de documentos</h2>
+        <div class="editor-grid">
+          <label>Prefixo do código <input name="prefixo" class="code" maxlength="32" placeholder="PRJ-"></label>
+          <label>Separador da revisão
+            <select name="separadorRevisao"><option value="_">Sublinhado (_)</option><option value="-">Hífen (-)</option></select>
+          </label>
+          <label>Prefixo da revisão <input name="prefixoRevisao" class="code" maxlength="3" value="R" required></label>
+          <label>Dígitos da revisão <input type="number" name="digitosRevisao" min="1" max="6" step="1" value="2" required></label>
+          <label class="full">Formatos permitidos <input name="formatos" class="code" value="ifc, dwg, pdf" required></label>
+          <label class="full">Critérios para o parecer <textarea name="criterios" rows="4" maxlength="2000" required></textarea></label>
+        </div>
+      </section>
+      <div class="buttons"><button type="submit">Validar e preparar campos</button></div>
+    </form>
+
+    <section id="check" hidden aria-labelledby="check-title">
+      <h2 id="check-title">Resultado da validação</h2>
+      <p id="check-status" role="status"></p>
+      <ul id="model-erros"></ul>
+      <ul id="model-avisos"></ul>
+    </section>
+
+    <section id="publication" hidden aria-labelledby="publication-title">
+      <h2 id="publication-title">Campos de BIMModelos</h2>
+      <p>Abra o formulário, preencha os campos e selecione <strong>Salvar</strong> no SharePoint. Confirme a chave, o estado Ativo e a configuração dos participantes do piloto.</p>
+      <dl id="prepared-fields"></dl>
+      <div class="buttons">
+        <a id="new-model" class="primary" target="_blank" rel="noopener noreferrer" hidden>Abrir novo item no SharePoint ↗</a>
+        <button type="button" id="copy-record" class="secondary">Copiar registro JSON</button>
+      </div>
+      <p id="copy-status" role="status"></p>
+    </section>
+  </main>
+</body>
+</html>

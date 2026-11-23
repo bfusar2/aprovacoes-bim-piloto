@@ -1,0 +1,9 @@
+{
+  "title": "Aprovações BIM · Microsoft 365",
+  "description": "Conferência de revisões do projeto e encaminhamento ao fluxo corporativo SharePoint",
+  "icon": "https://bfusar2.github.io/aprovacoes-bim-piloto/aprovacoes/icon.svg",
+  "url": "https://bfusar2.github.io/aprovacoes-bim-piloto/aprovacoes/m365/painel/index.html",
+  "extensionType": [
+    "project"
+  ]
+}

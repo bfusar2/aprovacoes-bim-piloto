@@ -1,0 +1,21 @@
+.editor details > summary { cursor: pointer; font-weight: 650; }
+.editor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; margin-top: 12px; }
+.editor-grid .full { grid-column: 1 / -1; }
+.editor input:not([type="checkbox"]), .editor textarea {
+  display: block; width: 100%; margin: 6px 0 2px; padding: 8px;
+  border: 1px solid #bac7d8; border-radius: 6px; font: inherit;
+}
+.editor textarea { resize: vertical; }
+.editor .code, .editor #prepared-fields textarea { font-family: ui-monospace, Consolas, monospace; }
+.editor .identities { margin-top: 16px; }
+.editor .links { align-items: center; }
+.editor input:focus-visible, .editor textarea:focus-visible, .editor summary:focus-visible { outline: 3px solid #8e86fa; outline-offset: 2px; }
+.editor #prepared-fields div { grid-template-columns: minmax(60px, 95px) minmax(0, 1fr) auto; }
+.editor #prepared-fields textarea { margin: 0; }
+.editor #model-erros { color: #a02727; }
+.editor #model-avisos { color: #775400; }
+.editor ul:empty, .editor p:empty { display: none; }
+@media (max-width: 540px) {
+  .editor-grid { grid-template-columns: minmax(0, 1fr); }
+  .editor #prepared-fields div { grid-template-columns: 1fr auto; }
+}

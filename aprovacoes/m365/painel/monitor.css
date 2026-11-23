@@ -1,0 +1,17 @@
+header nav { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-left: auto; }
+.monitor-actions { align-items: center; }
+.monitor-counts { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin: 14px 0; }
+.monitor-counts div { display: grid; gap: 4px; padding: 11px; border: 1px solid #d6dfeb; border-radius: 8px; background: #f5f7fb; }
+.monitor-counts strong { font-size: 1.35rem; }
+.monitor-counts span { font-size: .8rem; color: #47596c; }
+.monitor-table { margin: 10px 0; overflow: auto; }
+.monitor-table table { width: 100%; border-collapse: collapse; line-height: 1.4; text-align: left; }
+.monitor-table th, .monitor-table td { padding: 9px 7px; border-bottom: 1px solid #e1e6ed; vertical-align: top; overflow-wrap: anywhere; }
+.monitor-table th { font-size: .8rem; color: #47596c; }
+.monitor-table td { font-size: .87rem; }
+.monitor-table td small { display: block; margin-top: 3px; color: #47596c; }
+.monitor-table button { padding: 6px 8px; white-space: nowrap; }
+.monitor-overdue { color: #8f2d13; font-weight: 650; }
+#monitor-history { padding-left: 23px; overflow-wrap: anywhere; }
+#monitor-history li { margin: 8px 0; line-height: 1.45; }
+.monitor-table:focus-visible { outline: 3px solid #8e86fa; outline-offset: 2px; }

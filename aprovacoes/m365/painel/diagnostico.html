@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://components.connect.trimble.com; connect-src https://app.connect.trimble.com https://app21.connect.trimble.com https://app22.connect.trimble.com https://app31.connect.trimble.com https://app32.connect.trimble.com; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Diagnóstico Trimble · Aprovações BIM</title>
+  <link rel="stylesheet" href="./painel.css">
+  <script type="module" src="./diagnostico.mjs"></script>
+</head>
+<body>
+  <header><img src="../../icon.svg" width="38" height="38" alt=""><div><small>Trimble Connect</small><strong>Aprovações BIM</strong></div><a href="./index.html">Submeter revisão</a></header>
+  <main>
+    <h1>Diagnóstico do Trimble</h1>
+    <p>Confira o acesso da extensão ao projeto e à Core API 2.0 antes de configurar o SharePoint.</p>
+    <p id="project"></p>
+    <section>
+      <label for="region">Região do projeto</label>
+      <select id="region">
+        <option value="">Selecione a região</option>
+        <option value="northamerica">América do Norte</option>
+        <option value="europe">Europa</option>
+        <option value="unitedkingdom">Reino Unido</option>
+        <option value="asia">Ásia</option>
+        <option value="australia">Austrália</option>
+      </select>
+      <div class="buttons"><button id="run" type="button" disabled>Testar acesso de leitura</button></div>
+    </section>
+    <p id="result" class="status" role="status">Conectando ao projeto…</p>
+  </main>
+</body>
+</html>

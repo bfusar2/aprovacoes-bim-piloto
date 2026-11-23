@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://components.connect.trimble.com; connect-src 'self' https://app.connect.trimble.com https://app21.connect.trimble.com https://app22.connect.trimble.com https://app31.connect.trimble.com https://app32.connect.trimble.com; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Aprovações BIM · Microsoft 365</title>
+  <link rel="icon" href="../../icon.svg"><link rel="stylesheet" href="painel.css">
+  <script type="module" src="painel.mjs"></script>
+</head>
+<body>
+  <header><img src="../../icon.svg" width="38" height="38" alt=""><div><small>Trimble Connect</small><strong>Aprovações BIM</strong></div><a id="board" target="_blank" rel="noopener noreferrer" hidden>Consultar fluxo no SharePoint ↗</a></header>
+  <main>
+    <h1>Submeter revisão</h1><p>Confira a versão do arquivo no Trimble e registre a solicitação no SharePoint da equipe.</p>
+    <div class="buttons">
+      <a id="team" href="./decisoes.html" class="primary" hidden>Decisões da equipe</a>
+      <a id="monitor" href="./monitor.html" class="primary" hidden>Acompanhamento</a>
+      <a href="./modelos.html" class="primary secondary">Modelos de aprovação</a>
+      <a href="./diagnostico.html" class="primary secondary">Diagnóstico Trimble</a>
+    </div>
+    <p id="connection" class="status" role="status">Conectando ao projeto…</p>
+    <section id="configuration" hidden>
+      <details id="config-details">
+        <summary>Configuração local do projeto</summary>
+        <p id="config-project"></p>
+        <p>Cole o JSON do administrador. Salve pelo próprio painel no Trimble. A configuração fica neste navegador.</p>
+        <form id="config-form">
+          <label for="config-json">JSON da configuração</label>
+          <textarea id="config-json" rows="12" maxlength="12000" required spellcheck="false"></textarea>
+          <div class="buttons"><button type="submit">Salvar configuração</button><button type="button" id="remove-config" class="secondary" hidden>Remover configuração local</button></div>
+        </form>
+        <p id="config-status" role="status"></p>
+      </details>
+    </section>
+    <section id="selection" hidden>
+      <h2>Documento em elaboração</h2>
+      <p id="project"></p><p id="folder"></p>
+      <label for="file">Arquivo</label><select id="file"><option value="">Selecione um arquivo</option></select>
+      <div class="buttons"><button id="inspect" disabled>Conferir versão atual</button><button class="secondary" id="refresh">Atualizar arquivos</button></div>
+    </section>
+    <section id="submission" hidden>
+      <h2>Dados para a solicitação</h2>
+      <p id="summary"></p><p>Abra o formulário, copie cada valor para o campo correspondente e selecione <strong>Salvar</strong> no SharePoint. A solicitação só entra na fila após esse registro.</p>
+      <dl id="fields"></dl>
+      <a id="new-form" target="_blank" rel="noopener noreferrer" class="primary">Abrir formulário no SharePoint ↗</a>
+      <p id="copy-status" role="status"></p>
+    </section>
+  </main>
+</body>
+</html>
