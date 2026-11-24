@@ -22,6 +22,19 @@
     <section id="dossier" hidden>
       <h2 id="title"></h2><p id="stage"></p><p id="reference"></p><p id="criteria"></p><p id="owners"></p>
       <details><summary>Histórico oficial</summary><ol id="history"></ol></details>
+      <form id="pilot-decision" hidden>
+        <label for="pilot-note">Comentário (obrigatório para recusar)</label>
+        <textarea id="pilot-note" rows="3" maxlength="1000"></textarea>
+        <div class="buttons"><button id="pilot-approve">Aprovar</button> <button id="pilot-reject" class="secondary">Recusar</button></div>
+      </form>
+      <button id="pilot-resume" type="button" hidden>Retomar piloto</button>
+      <form id="pilot-reconcile" hidden>
+        <label for="pilot-version">Nova versão após o movimento, no histórico do Trimble</label>
+        <input id="pilot-version" maxlength="96" required>
+        <label class="attest"><input type="checkbox" required>Conferi no Trimble que essa versão corresponde à revisão aprovada.</label>
+        <button>Registrar chegada conferida</button>
+      </form>
+      <p id="pilot-state" hidden></p>
       <form id="decision" hidden>
         <label for="action">Ação</label><select id="action"></select>
         <div id="destination-label" hidden><label for="destination">ID da cópia no Trimble (opcional na busca por nome)</label><input id="destination" maxlength="96"><button id="find-copy" type="button" class="secondary">Localizar e conferir cópia</button><p id="found-copy"></p></div>
@@ -31,5 +44,6 @@
       </form>
     </section>
     <section id="receipt" hidden><h2>Pedido enviado</h2><p id="receipt-info"></p><button id="verify" class="secondary">Conferir resultado oficial</button> <a id="requests" target="_blank" rel="noopener noreferrer">Pedidos no SharePoint ↗</a></section>
+    <small id="panel-build"></small>
   </main>
 </body></html>

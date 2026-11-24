@@ -21,12 +21,17 @@ export function identifier(value) {
 export function trimble(region, token, fetcher = fetch) {
   if (!HOSTS[region]) throw new Problem(500, "Região do projeto inválida.");
   const base = "https://" + HOSTS[region] + ".connect.trimble.com/tc/api/2.0/";
-  return async (path, { method = "GET", body } = {}) => {
+  return async (path, { method = "GET", body, ifMatch } = {}) => {
+    const version = ifMatch === undefined ? undefined : identifier(ifMatch);
     let response;
     try {
       response = await fetcher(base + path, {
         method, redirect: "error", signal: AbortSignal.timeout(14000),
-        headers: { Authorization: "Bearer " + token, ...(body && { "Content-Type": "application/json" }) },
+        headers: {
+          Authorization: "Bearer " + token,
+          ...(body && { "Content-Type": "application/json" }),
+          ...(version && { "If-Match": version }),
+        },
         body: body && JSON.stringify(body),
       });
     } catch {
@@ -98,6 +103,44 @@ export function core(api, projectId, config) {
         method: "POST",
         body: { parentId: destination, parentType: "FOLDER", fromFileVersionId: source.versionId, mergeExisting: false },
       });
+    },
+    async movePdf(source, destinationId, onPatched) {
+      const { id, versionId, parentId, name } = source;
+      identifier(versionId);
+      identifier(destinationId);
+      if (typeof name !== "string" || !/\.pdf$/i.test(name) || parentId === destinationId) {
+        throw new Problem(400, "Selecione um PDF e uma pasta de destino diferente da origem.");
+      }
+      const current = await file(id);
+      if (current.versionId !== versionId || current.parentId !== parentId || current.name !== name) {
+        throw new Problem(409, "O PDF mudou desde a aprovação. Confira a pasta e a revisão atual.");
+      }
+      const destinationFiles = await items(destinationId);
+      const normalizedName = name.normalize("NFC").toLowerCase();
+      if (destinationFiles.some((item) => item.name.normalize("NFC").toLowerCase() === normalizedName)) {
+        throw new Problem(409, "Já existe um arquivo com esse nome na pasta de destino.");
+      }
+      let moved;
+      let confirmed;
+      try {
+        moved = await api("files/" + id, {
+          method: "PATCH", ifMatch: versionId, body: { parentId: destinationId },
+        });
+      } catch (error) {
+        if (error.status !== 502) throw error;
+        throw new Problem(502, "O Trimble ficou sem confirmar a movimentação. Confira o PDF antes de tentar novamente.");
+      }
+      if (moved?.id === id && moved.versionId && moved.versionId !== versionId) onPatched?.(identifier(moved.versionId));
+      try {
+        confirmed = await file(id);
+      } catch {
+        throw new Problem(502, "O Trimble aceitou a movimentação. Confira a pasta e a versão antes de continuar.");
+      }
+      if (moved?.id !== id || confirmed.parentId !== destinationId || confirmed.name !== name ||
+          confirmed.versionId === versionId || confirmed.versionId !== moved.versionId) {
+        throw new Problem(409, "O Trimble retornou uma pasta ou versão divergente após a movimentação. Confira o PDF antes de continuar.");
+      }
+      return { before: current, after: confirmed };
     },
   };
 }

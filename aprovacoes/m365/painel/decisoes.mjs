@@ -2,11 +2,13 @@ import { identifier, trimble, core } from "../../trimble.mjs";
 import { capture } from "./model.mjs";
 import { loadSettings } from "./configuracao.mjs";
 import { graphLists, graphSettings, graphScope, steps, returnable, assertActual, compareCopies, describeCopyEvidence, findDestination, reference, decision, commandKey, verifyOperator, dossierIdentities } from "./graph.mjs";
+import { PilotArrivalPending, pilotArrival, pilotBuild, pilotCommand, pilotStages } from "./piloto.mjs";
 
 const byId = (id) => document.getElementById(id);
 const status = (text) => { byId("status").textContent = text; };
 const state = {};
 let busy = false;
+byId("panel-build").textContent = pilotBuild;
 
 function storage(key, value) {
   const full = key + "." + state.project;
@@ -117,12 +119,21 @@ function showDelivery(doc) {
   if (!doc) return;
   const source = reference(doc);
   const rule = steps[doc.stage];
+  const pilotStage = pilotStages[doc.stage];
+  byId("pilot-decision").hidden = doc.stage !== "piloto_decisao";
+  byId("pilot-resume").hidden = !["piloto_mover", "piloto_avisar"].includes(doc.stage);
+  byId("pilot-reconcile").hidden = true;
+  byId("pilot-reconcile").reset();
+  byId("pilot-state").hidden = !pilotStage;
+  byId("pilot-state").textContent = doc.stage === "piloto_envio_pendente"
+    ? "Se o envio permanecer pendente, confira a execução no Power Automate e a caixa de enviados antes de qualquer reenvio." : "";
+  byId("pilot-decision").reset();
   byId("title").textContent = doc.key;
-  byId("stage").textContent = "Etapa · " + doc.stage + " | Geração " + doc.generation;
+  byId("stage").textContent = "Etapa · " + (pilotStage || doc.stage) + " | Geração " + doc.generation;
   byId("reference").textContent = doc.record.origem.nome + " · Arquivo " + source.arquivo + " · Versão " + source.versao + " · Pasta " + source.pasta;
   byId("criteria").textContent = "Critérios do modelo · " + doc.record.modelo.criterios;
   const eligible = rule ? doc.record.modelo.papeis[rule[1]] || [] : [];
-  byId("owners").textContent = rule ? "Responsáveis pela etapa (" + rule[1] + ") · " + eligible.join(", ") : "Etapa encerrada.";
+  byId("owners").textContent = rule ? "Responsáveis pela etapa (" + rule[1] + ") · " + eligible.join(", ") : pilotStage ? "" : "Etapa encerrada.";
   const items = doc.history.map((event) => {
     const li = document.createElement("li");
     const evidence = event.dados?.comparacao;
@@ -132,6 +143,8 @@ function showDelivery(doc) {
       evidence && "Conferência declarada · " + describeCopyEvidence(evidence),
       evidence?.hashOrigem && "Hash de origem " + evidence.hashOrigem,
       evidence?.hashDestino && "Hash de destino " + evidence.hashDestino,
+      event.dados?.versaoDestino && "Versão de destino " + event.dados.versaoDestino,
+      event.dados?.aviso,
     ].filter(Boolean).join(" · ");
     return li;
   });
@@ -274,6 +287,94 @@ byId("decision").onsubmit = (event) => {
     await send(decision(doc, action, note, check, destination, { operadorTrimble, comparacao }));
     if (comparacao) status("Pedido registrado na fila. " + describeCopyEvidence(comparacao));
   });
+};
+
+async function waitForPilot(command, terminal) {
+  const receipt = await state.lists.submit(command);
+  storage("bim.recibo", receipt);
+  showReceipt(receipt);
+  status("Aguardando o Power Automate registrar a etapa no SharePoint.");
+  for (let attempt = 0; attempt < 25; attempt++) {
+    await confirmProject();
+    const doc = await state.lists.locate(receipt.key, state.project);
+    if (doc?.history.some((event) => String(event.comando) === receipt.id)) {
+      showDelivery(doc);
+      if (!terminal || ["publicado", "devolvido"].includes(doc.stage)) return doc;
+    }
+    const result = await state.lists.result(receipt.id);
+    if (/^(Recusado|Requer conferência)/.test(result)) throw new Error(result);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+  throw new Error("O processamento continua pendente. Confira o dossiê para retomar na etapa registrada.");
+}
+
+function moveCheckpoint(doc) {
+  const origin = doc.record.origem;
+  const key = ["bim.piloto.movimento", state.project, origin.arquivo, origin.versao, doc.record.modelo.pastas.published].join(".");
+  return {
+    read() {
+      try { return localStorage.getItem(key) || storage(key); }
+      catch { return storage(key); }
+    },
+    write(version) {
+      storage(key, version);
+      try { localStorage.setItem(key, version); } catch { /* Mantém o recibo da aba. */ }
+    },
+  };
+}
+
+async function resumePilot(doc, reviewedVersion) {
+  await confirmProject();
+  doc = await state.lists.locate(doc.key, state.project);
+  showDelivery(doc);
+  if (["publicado", "devolvido"].includes(doc?.stage)) {
+    status("Decisão e envio registrados no SharePoint.");
+    return;
+  }
+  if (!["piloto_mover", "piloto_avisar"].includes(doc?.stage)) throw new Error("Consulte a etapa atual do piloto.");
+  const { api, operadorTrimble } = await trimbleApi(dossierIdentities(doc));
+  const origin = doc.record.origem;
+  if (doc.stage === "piloto_mover") {
+    status("Aprovação registrada. Conferindo a movimentação para Publicado.");
+    let destination;
+    try { destination = await pilotArrival(api, doc, moveCheckpoint(doc), reviewedVersion); }
+    catch (error) {
+      if (error instanceof PilotArrivalPending || reviewedVersion) byId("pilot-reconcile").hidden = false;
+      throw error;
+    }
+    await confirmProject();
+    const evidence = reviewedVersion ? "Chegada conferida no histórico do Trimble pelo operador." : "Chegada confirmada no Trimble.";
+    await waitForPilot(pilotCommand(doc, "piloto_chegada", evidence, operadorTrimble, destination), true);
+  } else {
+    const expected = doc.record.publicado || origin;
+    assertActual(expected, await api.file(expected.arquivo), origin.projeto, origin.nome);
+    await waitForPilot(pilotCommand(doc, "piloto_avisar", "Localização reconfirmada no Trimble.", operadorTrimble), true);
+  }
+  status("Decisão e envio registrados no SharePoint.");
+}
+
+byId("pilot-decision").onsubmit = (event) => {
+  event.preventDefault();
+  const reject = event.submitter === byId("pilot-reject");
+  const note = byId("pilot-note").value.trim();
+  void perform(async () => {
+    if (reject && !note) throw new Error("Informe o motivo da recusa.");
+    const doc = state.delivery;
+    const { api, operadorTrimble } = await trimbleApi(dossierIdentities(doc));
+    const origin = doc.record.origem;
+    assertActual(origin, await api.file(origin.arquivo), state.project, origin.nome);
+    const next = await waitForPilot(pilotCommand(doc, reject ? "piloto_recusar" : "piloto_aprovar",
+      note || "Revisão aprovada.", operadorTrimble), reject);
+    if (reject) status("Recusa e envio registrados no SharePoint.");
+    else await resumePilot(next);
+  });
+};
+
+byId("pilot-resume").onclick = () => perform(() => resumePilot(state.delivery));
+byId("pilot-reconcile").onsubmit = (event) => {
+  event.preventDefault();
+  const version = byId("pilot-version").value.trim();
+  void perform(() => resumePilot(state.delivery, identifier(version)));
 };
 
 byId("verify").onclick = () => perform(async () => {
